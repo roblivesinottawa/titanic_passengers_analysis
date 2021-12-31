@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Database With Flask</title>
+  </head>
+  <body>
+    <h1>Titanic Data Analysis</h1>
+    <div>
+      <div style="float: left">
+        <h2>Gender Distribution</h2>
+        {{ gender_data | safe }}
+      </div>
+
+      <div style="float: right; margin-right: 120px">
+        <div style="float: left">
+          <h2>Passenger Class Distribution</h2>
+          {{ passengers_data | safe }}
+        </div>
+
+        <div style="float: right; margin-left: 90px">
+          <h2>Passenger Class and Gender Distribution</h2>
+          {{ passengers_gender_data | safe }}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
