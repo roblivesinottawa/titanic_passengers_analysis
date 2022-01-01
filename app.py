@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 plt.style.use('ggplot')
 
+app = Flask(__name__)   # create the Flask app
+
 def connect():
     global connection
     try:
@@ -26,19 +28,19 @@ def connect():
             print("You're connected to database: ", record)
     except Error as e:
         print("Error while connecting to MySQL", e)
-    finally:
-        if  connection.is_connected():
-            cursor.close()
-            connection.close()
-            print("MySQL connection is closed")
+    # finally:
+    #     if  connection.is_connected():
+    #         cursor.close()
+    #         connection.close()
+    #         print("MySQL connection is closed")
 
 connect()
 
-# read the csv file and create a dataframe. After, turn it into a sql file
-df = pd.read_csv('tested.csv', sep=',', quotechar='\"', encoding='utf-8')
-df.to_sql('tested_data', con=connection, if_exists='replace', index=False)
+# # read the csv file and create a dataframe. After, turn it into a sql file
+# df = pd.read_csv('tested.csv', sep=',', quotechar='\"', encoding='utf-8')
+# df.to_sql('tested_data', con=connection, if_exists='replace', index=False)
 
-app = Flask(__name__)   # create the Flask app
+
 
 @app.route('/')
 def index():
