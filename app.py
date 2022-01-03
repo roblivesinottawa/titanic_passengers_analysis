@@ -3,54 +3,56 @@ from flask import Flask, render_template, send_file, make_response, json
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import numpy as np
 import pandas as pd
-import mysql.connector
-from mysql.connector import Error
+import pymysql
+# import mysql.connector
+# from mysql.connector import Error
 import matplotlib.pyplot as plt
-
 plt.style.use('ggplot')
 
 app = Flask(__name__)   # create the Flask app
 
-def connect():
-    global connection
-    try:
-        connection = mysql.connector.connect(host='localhost',
-                                            database='tested_db',
-                                            user='root',
-                                            password='mysqlpassmacrob')
+# def connect():
+#     global connection
+#     try:
+#         connection = mysql.connector.connect(host='localhost',
+#                                             database='tested_db',
+#                                             user='root',
+#                                             password='mysqlpassmacrob')
 
-        if connection.is_connected():
-            db_Info = connection.get_server_info()
-            print("Connected to MySQL Server version ", db_Info)
-            cursor = connection.cursor()
-            cursor.execute("select database();")
-            record = cursor.fetchone()
-            print("You're connected to database: ", record)
-    except Error as e:
-        print("Error while connecting to MySQL", e)
-    # finally:
-    #     if  connection.is_connected():
-    #         cursor.close()
-    #         connection.close()
-    #         print("MySQL connection is closed")
+#         if connection.is_connected():
+#             db_Info = connection.get_server_info()
+#             print("Connected to MySQL Server version ", db_Info)
+#             cursor = connection.cursor()
+#             cursor.execute("select database();")
+#             record = cursor.fetchone()
+#             print("You're connected to database: ", record)
+#     except Error as e:
+#         print("Error while connecting to MySQL", e)
+#     # finally:
+#     #     if  connection.is_connected():
+#     #         cursor.close()
+#     #         connection.close()
+#     #         print("MySQL connection is closed")
 
-connect()
+# connect()
 
-# # read the csv file and create a dataframe. After, turn it into a sql file
-# df = pd.read_csv('tested.csv', sep=',', quotechar='\"', encoding='utf-8')
-# df.to_sql('tested_data', con=connection, if_exists='replace', index=False)
+c = pymysql.connect(host='localhost',
+                    user='root',
+                    password='mysqlpassmacrob',
+                    db='titanic_info')
 
 
 
 @app.route('/')
 def index():
     """this function renders the index.html file"""
-    df = pd.read_sql("SELECT * FROM train", con=connection)
+    df = pd.read_sql("SELECT * FROM passengers", con=c)
     return render_template('index.html', data=df.head(10).to_html())
+
 
 @app.route('/analysis')
 def passenger_class():
-    df = pd.read_sql("SELECT * FROM train", con=connection)
+    df = pd.read_sql("SELECT * FROM passengers", con=c)
     gender_results = df.groupby('Sex').size()
     gender_new_df = pd.DataFrame(gender_results)
     class_results = df.groupby(['Pclass'])['Pclass'].count()
@@ -62,9 +64,10 @@ def passenger_class():
                                             passengers_df=class_new_df.to_html(), 
                                             passengers_gender_df=pass_class_gender_new_df.to_html())
 
+
 @app.route('/gender_pie_chart/')
 def gender_pie_chart():
-    df = pd.read_sql("SELECT * FROM train", con=c)
+    df = pd.read_sql("SELECT * FROM passengers", con=c)
     data=df.groupby(['Sex'])['Sex'].count()
     gender_labels=['Female','Male']
     fig,ax=plt.subplots()
@@ -77,9 +80,10 @@ def gender_pie_chart():
     img.seek(0)
     return send_file(img, mimetype='image/png')
 
+
 @app.route('/class_bar_graph/')
 def class_bar_graph():
-    df = pd.read_sql("SELECT * FROM train", con=connection)
+    df = pd.read_sql("SELECT * FROM passengers", con=c)
     new_df=df.groupby(['Pclass'])['Pclass'].count()
     pclass=new_df[0:]
     new_df=df.groupby(['Pclass'])['Pclass'].count()
@@ -93,9 +97,10 @@ def class_bar_graph():
     img.seek(0)
     return send_file(img, mimetype='image/png')
  
+
 @app.route('/class_gender_bar_graph/')
 def class_gender_bar_graph():
-    df = pd.read_sql("SELECT * FROM train", con=connection)
+    df = pd.read_sql("SELECT * FROM passengers", con=c)
     group_df=df.groupby(['Pclass','Sex'])['Sex'].count()
     unstacked_df=group_df.unstack('Pclass').T 
     new_df=pd.DataFrame(unstacked_df,columns=['female','male']) 
